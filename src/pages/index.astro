@@ -1,0 +1,383 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config';
+import { jspace, chainOfThought, trainingData, objectives, researchLog, type Entry } from '../data/mind';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const resolve = (href?: string) =>
+  href && href.startsWith('/') ? base + href : href;
+const today = new Date().toISOString().slice(0, 10);
+
+const marker: Record<string, string> = { demo: '▶ demo', x: '𝕏 post', note: '' };
+
+// Section metaphor annotations — reword freely.
+const toc = [
+  { id: 'jspace', n: 1, title: 'J-space' },
+  { id: 'cot', n: 2, title: 'Chain of thought samples' },
+  { id: 'training', n: 3, title: 'Training data' },
+  { id: 'objectives', n: 4, title: 'Objective functions' },
+  { id: 'log', n: 5, title: 'Research log' },
+  { id: 'rlhf', n: 6, title: 'RLHF' },
+];
+---
+
+<BaseLayout>
+  <!-- title block -->
+  <header class="titleblock">
+    <h1>{site.name}</h1>
+    <p class="byline mono">forward pass · {today} · temperature ≈ 0.8</p>
+    <nav class="toc">
+      {toc.map((s) => (
+        <a href={`#${s.id}`}><span class="secnum">{s.n}</span> {s.title}</a>
+      ))}
+    </nav>
+  </header>
+
+  <!-- §1 J-space -->
+  <section id="jspace" class="section">
+    <div class="section-head">
+      <span class="secnum">1</span><h2>J-space<sup class="fn-ref" id="fnref1"><a href="#fn1">1</a></sup></h2>
+      <span class="mono ann">activations right now</span>
+    </div>
+    <div class="jgrid">
+      {
+        jspace.map((e: Entry) =>
+          e.text ? (
+            <article class="cell">
+              {e.kind && marker[e.kind] && <span class="mono kind">{marker[e.kind]}</span>}
+              {e.href ? (
+                <a class="cell-title" href={resolve(e.href)} target={e.external ? '_blank' : undefined} rel={e.external ? 'noopener' : undefined}>
+                  {e.text}{e.external ? ' ↗' : ''}
+                </a>
+              ) : (
+                <span class="cell-title">{e.text}</span>
+              )}
+              {e.note && <p class="cell-note">{e.note}</p>}
+              {e.tag && <span class="tag">{e.tag}</span>}
+            </article>
+          ) : (
+            <article class="cell empty">
+              {e.kind && marker[e.kind] && <span class="mono kind">{marker[e.kind]}</span>}
+              <span class="blank" />
+              <span class="mono todo">// to fill</span>
+            </article>
+          )
+        )
+      }
+    </div>
+  </section>
+
+  <!-- §2 Chain of thought samples / §3 Training data / §4 Objective functions -->
+  {
+    [
+      { id: 'cot', n: 2, title: 'Chain of thought samples', ann: 'verbalized — may differ from J-space', data: chainOfThought },
+      { id: 'training', n: 3, title: 'Training data', ann: 'what shaped the weights', data: trainingData },
+      { id: 'objectives', n: 4, title: 'Objective functions', ann: 'loss to minimize', data: objectives },
+    ].map((s) => (
+      <section id={s.id} class="section">
+        <div class="section-head">
+          <span class="secnum">{s.n}</span><h2>{s.title}</h2>
+          <span class="mono ann">{s.ann}</span>
+        </div>
+        <ol class="stack">
+          {s.data.map((e: Entry) => (
+            <li class={e.text ? 'row' : 'row empty'}>
+              <div>
+                {e.text ? (
+                  e.href ? (
+                    <a href={resolve(e.href)} target={e.external ? '_blank' : undefined} rel={e.external ? 'noopener' : undefined}>{e.text}</a>
+                  ) : (
+                    <span class="row-text">{e.text}</span>
+                  )
+                ) : (
+                  <span class="blank wide" />
+                )}
+                {e.note && <p class="row-note">“{e.note}”</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+
+  <!-- §5 Research log -->
+  <section id="log" class="section">
+    <div class="section-head">
+      <span class="secnum">5</span><h2>Research log</h2>
+      <span class="mono ann">recent findings, self ⟶ self</span>
+    </div>
+    <dl class="log">
+      {
+        researchLog.map((e: Entry) => (
+          <div class={e.text ? 'log-row' : 'log-row empty'}>
+            <dt class="mono">{e.date || '____-__-__'}</dt>
+            <dd>{e.text ? e.text : <span class="blank wide" />}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- §6 RLHF -->
+  <section id="rlhf" class="section">
+    <div class="section-head">
+      <span class="secnum">6</span><h2>RLHF</h2>
+      <span class="mono ann">reward signal from the real world</span>
+    </div>
+    <p class="reward-links">
+      <a href={`mailto:${site.social.email}`}>email</a>
+      <a href={site.social.x} target="_blank" rel="me noopener">x / @hijackedbyhera</a>
+      <a href={site.social.github} target="_blank" rel="me noopener">github</a>
+      <a href={site.social.linkedin} target="_blank" rel="me noopener">linkedin</a>
+    </p>
+  </section>
+
+  <!-- footnotes -->
+  <section class="footnotes" aria-label="Footnotes">
+    <ol>
+      <li id="fn1">
+        “J-space” is a real construct: a set of internal neural patterns (named
+        after the <em>Jacobian</em>) that the model can report on and reason with —
+        <em>“something different”</em> from chain of thought, revealing internal
+        thoughts that don’t appear in the model’s output. Anthropic,{' '}
+        <a href="https://www.anthropic.com/research/global-workspace" target="_blank" rel="noopener">“A global workspace in language models”</a>,
+        July 6, 2026. <a class="fn-back" href="#fnref1">↩</a>
+      </li>
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  .titleblock {
+    padding-top: 1.5rem;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .titleblock h1 {
+    margin-bottom: 0.4rem;
+  }
+  .byline {
+    margin: 0 0 1.2rem;
+    color: var(--ink-faint);
+  }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+  }
+  .toc a {
+    color: var(--ink-soft);
+  }
+  .toc a:hover {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .secnum {
+    font-family: var(--mono);
+    color: var(--mark);
+    font-size: 0.85em;
+  }
+
+  .section {
+    margin-top: 3rem;
+    scroll-margin-top: 1.25rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .section-head h2 {
+    margin: 0;
+  }
+  .section-head .secnum {
+    font-size: 1rem;
+  }
+  .ann {
+    color: var(--ink-faint);
+  }
+
+  /* J-space: clean figure grid */
+  .jgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  }
+  .cell {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    margin-top: -1px;
+    margin-left: -1px;
+    padding: 1rem 1.05rem 1.1rem;
+    min-height: 116px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: background 0.15s ease;
+  }
+  .cell:hover {
+    background: var(--paper-shade);
+  }
+  .kind {
+    color: var(--mark);
+  }
+  .cell-title {
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  a.cell-title:hover {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .cell-note {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .cell .tag {
+    margin-top: auto;
+  }
+  .cell.empty {
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .todo {
+    color: var(--ink-faint);
+  }
+
+  /* blank fill-in lines */
+  .blank {
+    display: block;
+    height: 1.1rem;
+    width: 60%;
+    border-bottom: 1px dashed var(--rule-strong);
+  }
+  .blank.wide {
+    width: min(440px, 92%);
+  }
+
+  /* enumerated lists (training / objectives) */
+  .stack {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: item;
+  }
+  .stack .row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .stack .row:first-child {
+    border-top: none;
+  }
+  .stack .row::before {
+    counter-increment: item;
+    content: counter(item, decimal) '.';
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    flex: none;
+    padding-top: 0.2rem;
+  }
+  .row a,
+  .row-text {
+    font-size: 1.08rem;
+  }
+  .row a {
+    color: var(--ink);
+    border-bottom: 1px solid var(--blue);
+  }
+  .row a:hover {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .row-note {
+    margin: 0.3rem 0 0;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  /* research log: date | finding table */
+  .log {
+    margin: 0;
+  }
+  .log-row {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .log-row:first-child {
+    border-top: none;
+  }
+  .log dt {
+    color: var(--ink-faint);
+  }
+  .log dd {
+    margin: 0;
+    font-size: 1.06rem;
+  }
+
+  /* rlhf */
+  .reward-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  /* footnotes */
+  .fn-ref {
+    font-family: var(--mono);
+    font-size: 0.6em;
+    line-height: 0;
+    margin-left: 0.1em;
+  }
+  .fn-ref a {
+    color: var(--mark);
+    text-decoration: none;
+  }
+  .footnotes {
+    margin-top: 3.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .footnotes ol {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+  .footnotes li {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .footnotes li::marker {
+    font-family: var(--mono);
+    color: var(--mark);
+  }
+  .fn-back {
+    text-decoration: none;
+    color: var(--blue);
+  }
+
+  @media (max-width: 560px) {
+    .log-row {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+  }
+</style>

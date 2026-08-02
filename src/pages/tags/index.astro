@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import { getAllTags } from '../../lib/posts';
+
+const tags = await getAllTags();
+---
+
+<BaseLayout title="Tags" description="Browse posts by tag.">
+  <h1>Tags</h1>
+  <p class="lead">Browse posts by topic.</p>
+  <ul class="post-list" style="margin-top:1.5rem">
+    {
+      tags.map((t) => (
+        <li>
+          <h3 style="margin:0 0 0.35rem">
+            <TagBadge tag={t.tag} />
+          </h3>
+          <div class="post-meta">
+            {t.count} {t.count === 1 ? 'post' : 'posts'}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

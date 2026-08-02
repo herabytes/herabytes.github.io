@@ -1,0 +1,193 @@
+---
+// -----------------------------------------------------------------------------
+// TransformerZoom (v1 — placeholder hero)
+//
+// A subtle infinite-zoom "flight" toward a glowing cloud of points — the teaser
+// for the eventual "zoom into a Transformer whose latent J-space is what's been
+// on my mind" animation. This component is intentionally SELF-CONTAINED: to grow
+// it into the full multi-stage zoom (tokens -> attention -> layers -> J-space),
+// replace only the client script below. Nothing else in the site depends on its guts.
+// -----------------------------------------------------------------------------
+---
+
+<section class="hero">
+  <canvas id="zoom-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content container">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: min(78vh, 640px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  #zoom-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+  }
+  /* fade the canvas edges into the page background */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      var(--bg) 100%
+    );
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('zoom-canvas') as HTMLCanvasElement | null;
+  if (canvas) {
+    const ctx = canvas.getContext('2d')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Read theme-aware colors from CSS variables.
+    const css = getComputedStyle(document.documentElement);
+    const accent = css.getPropertyValue('--accent').trim() || '#8ab4ff';
+    const accentSoft = css.getPropertyValue('--accent-soft').trim() || '#5f7cff';
+
+    type P = { x: number; y: number; z: number; core: boolean };
+    let points: P[] = [];
+    let w = 0,
+      h = 0,
+      dpr = 1;
+    let cx = 0,
+      cy = 0; // camera / parallax offset target
+    let px = 0,
+      py = 0; // smoothed parallax
+    const COUNT = 260;
+    const FOCAL = 320;
+
+    function reset(p: P) {
+      // Spawn on a disk; "core" points cluster tight to form the latent cloud.
+      const core = Math.random() < 0.35;
+      const spread = core ? 90 : 520;
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * spread;
+      p.x = Math.cos(a) * r;
+      p.y = Math.sin(a) * r;
+      p.z = Math.random() * 1400 + 60;
+      p.core = core;
+    }
+
+    function seed() {
+      points = Array.from({ length: COUNT }, () => {
+        const p = { x: 0, y: 0, z: 0, core: false };
+        reset(p);
+        return p;
+      });
+    }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas!.clientWidth;
+      h = canvas!.clientHeight;
+      canvas!.width = Math.floor(w * dpr);
+      canvas!.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function project(p: P) {
+      const s = FOCAL / p.z;
+      return {
+        sx: w / 2 + (p.x + px * 40) * s,
+        sy: h / 2 + (p.y + py * 40) * s,
+        s,
+      };
+    }
+
+    function draw(speed: number) {
+      // trailing fade for a soft "motion" feel
+      ctx.fillStyle =
+        css.getPropertyValue('--bg').trim() || '#0b0d12';
+      ctx.globalAlpha = reduce ? 1 : 0.28;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
+
+      px += (cx - px) * 0.05;
+      py += (cy - py) * 0.05;
+
+      const projected: { sx: number; sy: number; s: number; p: P }[] = [];
+      for (const p of points) {
+        if (!reduce) p.z -= speed;
+        if (p.z < 40) reset(p);
+        const pr = project(p);
+        projected.push({ ...pr, p });
+
+        const size = Math.max(0.4, pr.s * (p.core ? 2.6 : 1.4));
+        const alpha = Math.min(1, pr.s * (p.core ? 1.1 : 0.7));
+        ctx.beginPath();
+        ctx.arc(pr.sx, pr.sy, size, 0, Math.PI * 2);
+        ctx.fillStyle = p.core ? accent : accentSoft;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // faint links between nearby core points -> "latent structure"
+      ctx.strokeStyle = accentSoft;
+      ctx.lineWidth = 0.5;
+      const core = projected.filter((q) => q.p.core && q.s > 0.35);
+      for (let i = 0; i < core.length; i++) {
+        for (let j = i + 1; j < core.length; j++) {
+          const dx = core[i].sx - core[j].sx;
+          const dy = core[i].sy - core[j].sy;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 120 * 120) {
+            ctx.globalAlpha = (1 - Math.sqrt(d2) / 120) * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(core[i].sx, core[i].sy);
+            ctx.lineTo(core[j].sx, core[j].sy);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    seed();
+    resize();
+    window.addEventListener('resize', resize);
+
+    if (!reduce) {
+      window.addEventListener('pointermove', (e) => {
+        cx = (e.clientX / window.innerWidth - 0.5) * 2;
+        cy = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+      let raf = 0;
+      const loop = () => {
+        draw(6);
+        raf = requestAnimationFrame(loop);
+      };
+      // pause when the tab isn't visible
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(raf);
+        else loop();
+      });
+      loop();
+    } else {
+      // static, single frame for reduced-motion users
+      ctx.fillStyle = css.getPropertyValue('--bg').trim() || '#0b0d12';
+      ctx.fillRect(0, 0, w, h);
+      draw(0);
+    }
+  }
+</script>

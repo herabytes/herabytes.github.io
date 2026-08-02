@@ -1,0 +1,17 @@
+---
+interface Props {
+  tag: string;
+  link?: boolean;
+}
+const { tag, link = true } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const href = `${base}/tags/${encodeURIComponent(tag.toLowerCase())}`;
+---
+
+{
+  link ? (
+    <a class="tag" href={href}>#{tag}</a>
+  ) : (
+    <span class="tag">#{tag}</span>
+  )
+}

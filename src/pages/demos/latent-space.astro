@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TransformerZoom from '../../components/TransformerZoom.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<BaseLayout title="Latent space" description="An interactive sketch: drifting toward a latent cloud.">
+  <a class="back-link" href={`${base}/#jspace`}>← back to J-space</a>
+  <h1 style="margin-top:1rem">Latent space</h1>
+  <p class="lead">Move the cursor. A placeholder for the eventual zoom-into-a-transformer piece.</p>
+  <div class="stage">
+    <TransformerZoom />
+  </div>
+</BaseLayout>
+
+<style>
+  .stage {
+    margin-top: 1.5rem;
+    border: 1.6px solid var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+</style>

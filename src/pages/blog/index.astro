@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagBadge from '../../components/TagBadge.astro';
+import { getPosts, getAllTags, formatDate } from '../../lib/posts';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const posts = await getPosts();
+const tags = await getAllTags();
+---
+
+<BaseLayout title="Blog" description="Writeups.">
+  <h1>Blog</h1>
+
+  {
+    tags.length > 0 && (
+      <div class="tag-row" style="margin-top:1rem">
+        <span class="post-meta">Tags:</span>
+        {tags.map((t) => (
+          <TagBadge tag={t.tag} />
+        ))}
+      </div>
+    )
+  }
+
+  <ul class="post-list">
+    {
+      posts.map((p) => (
+        <li>
+          <h3>
+            <a href={`${base}/blog/${p.id}`}>{p.data.title}</a>
+          </h3>
+          <div class="post-meta">{formatDate(p.data.date)}</div>
+          {p.data.description && <p>{p.data.description}</p>}
+          <div class="tag-row">
+            {p.data.tags.map((tag) => (
+              <TagBadge tag={tag} />
+            ))}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>
