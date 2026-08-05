@@ -134,6 +134,18 @@ main {
   padding-top: 2.75rem;
 }
 
+/* inline code (RichText) — for backticks in descriptions, etc. */
+code.ic {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  background: var(--paper-shade);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05rem 0.32rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
 /* ---- tags ---- */
 .tag {
   font-family: var(--mono);

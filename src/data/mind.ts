@@ -25,7 +25,7 @@ export type Entry = {
 // In a non-ironic non-vulnerable version, this would just be displaying my achievements and marketing myself. Perhaps hide it under some toggle to a dark mode of what currently is.
 // Or, it's a Limitations
 // But for a first version I wanna project curious
-export const intro: string[] = ["Latests results from HumanLens applied to Hera's running inference."
+export const intro: string[] = ["Over-meta-analysis has emerged in running Hera, as a consequence of self-improvement behaviour. We record results obtained by interpretability techniques, alongside model outputs, to attempt inferring the model's intent and internals involved in thinking loops, and provide suggestions for external feedback or collaboration to break them."
 ];
 
 // J-SPACE — what's active right now. Ideas, half-thoughts, X posts.

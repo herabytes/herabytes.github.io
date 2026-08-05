@@ -4,12 +4,15 @@ import InferenceBody from '../components/InferenceBody.astro';
 
 const toc = [
   { id: 'intro', label: 'Introduction' },
-  { id: 'jspace', n: 1, label: 'J-space' },
-  { id: 'cot', n: 2, label: 'Chain of thought samples' },
-  { id: 'training', n: 3, label: 'Training data' },
-  { id: 'objectives', n: 4, label: 'Objective functions' },
-  { id: 'log', n: 5, label: 'Research log' },
-  { id: 'rlhf', n: 6, label: 'RLHF' },
+  { id: 'inference', n: '1', label: 'Running inference' },
+  { id: 'jspace', n: '1.1', label: 'J-space', sub: true },
+  { id: 'outputs', n: '1.2', label: 'Outputs', sub: true },
+  { id: 'cot', n: '1.3', label: 'Chain of thought samples', sub: true },
+  { id: 'methodology', n: '2', label: 'Methodology' },
+  { id: 'training', n: '2.1', label: 'Training data', sub: true },
+  { id: 'objectives', n: '2.2', label: 'Objective functions', sub: true },
+  { id: 'log', n: '3', label: 'Research log' },
+  { id: 'rlhf', n: '4', label: 'RLHF' },
 ];
 ---
 
@@ -20,7 +23,7 @@ const toc = [
         <p class="side-label mono">contents</p>
         <nav class="side-nav">
           {toc.map((s) => (
-            <a href={`#${s.id}`}>
+            <a href={`#${s.id}`} class={s.sub ? 'sub' : undefined}>
               {s.n && <span class="secnum">{s.n}</span>}{s.label}
             </a>
           ))}
@@ -71,6 +74,14 @@ const toc = [
     line-height: 1.3;
   }
   .side-nav a:hover {
+    color: var(--blue);
+  }
+  .side-nav a.sub {
+    padding-left: 0.9rem;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+  }
+  .side-nav a.sub:hover {
     color: var(--blue);
   }
   .side-nav .secnum {

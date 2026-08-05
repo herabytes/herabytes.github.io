@@ -1,0 +1,19 @@
+---
+// Renders `backticked` spans as inline code. Use anywhere a plain string
+// (like a blog post `description`) should support code formatting.
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+const parts = text.split(/(`[^`]+`)/g).filter((p) => p !== '');
+---
+
+{
+  parts.map((p) =>
+    p.length > 1 && p.startsWith('`') && p.endsWith('`') ? (
+      <code class="ic">{p.slice(1, -1)}</code>
+    ) : (
+      <Fragment>{p}</Fragment>
+    )
+  )
+}

@@ -1,7 +1,7 @@
 ---
 title: 'Hello world'
 date: 2026-08-02
-description: "Or ['Hello', 'Ġworld'] with token ids: [15496, 995],GPT-2's tokenizer"
+description: "Or `['Hello', 'Ġworld']` with token ids: `[15496, 995]` (GPT-2's tokenizer)"
 tags: ['engineering']
 draft: false
 ---
@@ -10,10 +10,16 @@ Thesis for this page:
 This is how I would describe me. I analyse myself too much for my own good. It needs somewhere to go. 
 A paper written by the meta-analysis Hera. I guess the 'model' here encodes my model of the world and how to navigate it and achieve what I want. [Naval's definition of intelligence]
 In the future I might add books, but I don't want this to be too comprehensive.
-The cooler thing I want to do is visualisation: draw out the residual stream and have the J-space floating from it, IDK. 
+The cooler thing I want to do is visualisation: draw out the residual stream and have the J-space floating from it, IDK. Click generate and it shows you one of my blog posts. 
+As I learn about more interp techniques this website might descend into a monolith with unnecessary detail, or a more tasteful selection that represents me well for a personal website.
 I like to think I am measuring AGI on the other end: how closely can the human resemble the model.
 Would love to chat about this stuff lol 
 
+Right hnow the visuald esign isn't really there showing what's 
+
+Benchmarking myself might be a bit harsh but plays into it 
+
+Over-meta-analysis has emerged in running Hera, as a consequence of self-improvement behaviour. We record results obtained by interpretability techniques, alongside model outputs, to attempt inferring the model's intent and internals involved in thinking loops, and provide suggestions for external feedback or collaboration to break them.
 <!-- This is a placeholder post so the blog isn't empty — replace or delete it.
 
 Posts are Markdown files in `src/content/blog/`. The frontmatter sets title, date,

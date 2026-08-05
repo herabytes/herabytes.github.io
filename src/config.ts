@@ -17,12 +17,6 @@ export const site = {
 
   // Optional <meta description>. Kept neutral on purpose — reword when you like.
   description: 'Hera Choi — a running inference: ideas, work, and interests.',
-
-  // Paper-style author block under the title (Distill / transformer-circuits style).
-  // Leave `affiliation` as '' to render a blank slot to fill in later.
-  affiliation: '',
-  affiliationUrl: '',
-  published: '2026-08-05',
 };
 
 // GitHub serves your avatar at https://github.com/<user>.png — no upload needed.
