@@ -270,6 +270,49 @@ const listSections = [
     color: var(--ink-faint);
   }
 
+  /* paper author block (Distill / transformer-circuits byline) */
+  .authorblock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .ab-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .ab-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .ab-val {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  .ab-val a {
+    color: var(--ink);
+    text-decoration: none;
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1.5px;
+    transition: background-size 0.8s ease, color 0.25s ease;
+  }
+  .ab-val a:hover {
+    color: var(--blue);
+    background-size: 100% 1.5px;
+  }
+  .blank.sm {
+    width: 90px;
+    height: 1rem;
+  }
+
   /* introduction */
   .intro-sec {
     margin-top: 1.75rem;
