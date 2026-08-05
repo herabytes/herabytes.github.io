@@ -1,25 +1,19 @@
 /* =============================================================================
-   Academic-paper aesthetic, referencing transformer-circuits.pub / Distill:
-   near-white, serif body, sans headers, thin rules, restrained blue links.
+   Personal "inference" landing — a paper-ish layout with a left sidebar.
+   Palette: clean neutral paper, charcoal ink, fresh-green links, sky-blue marks.
    Fonts (loaded in BaseLayout): Source Serif 4, Libre Franklin, IBM Plex Mono.
    ========================================================================== */
 
 :root {
-  --paper: #fdf6e3; /* solarized base3 */
-  --paper-shade: #f2ecd8;
-  --ink: #073642; /* base02 */
-  --ink-soft: #586e75; /* base01 */
-  --ink-faint: #93a1a1; /* base1 */
-  --rule: #e7e0c8;
-  --rule-strong: #d3cbb0;
-  --blue: #268bd2; /* solarized blue — links */
-  --blue-deep: #1f6f9f;
-  --mark: #cb4b16; /* solarized orange — section numbers / markers */
-  --green: #859900; /* strings / notes */
-  --violet: #6c71c4;
-  --cyan: #2aa198; /* tags */
-  --chrome: #eee8d5; /* solarized base2 — editor chrome (tabs / status) */
-  --chrome-dim: #e3dcc4;
+  --paper: #eef1ec; /* clean light neutral */
+  --paper-shade: #e5eae2;
+  --ink: #212a24; /* charcoal */
+  --ink-soft: #4a5750;
+  --ink-faint: #899289;
+  --rule: #dae0d5;
+  --rule-strong: #c1c9bb;
+  --blue: #23794e; /* fresh green — links */
+  --mark: #2b8fd6; /* happy sky blue — section numbers / markers */
 
   /* consumed by the (demo-only) TransformerZoom canvas — kept dark */
   --bg: #14161d;
@@ -46,8 +40,8 @@ body {
   color: var(--ink);
   background: var(--paper);
   font-family: var(--serif);
-  font-size: 1.0625rem;
-  line-height: 1.72;
+  font-size: 0.98rem;
+  line-height: 1.58;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'onum' 1, 'kern' 1;
@@ -107,39 +101,6 @@ h3 {
   margin-top: 0.35rem;
 }
 
-/* ---- nav (running header) ---- */
-.site-nav {
-  border-bottom: 1px solid var(--rule-strong);
-}
-.site-nav .container {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.site-nav .brand {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: var(--ink);
-}
-.site-nav .links {
-  display: flex;
-  gap: 1.3rem;
-  font-family: var(--sans);
-  font-size: 0.9rem;
-}
-.site-nav .links a {
-  color: var(--ink-soft);
-}
-.site-nav .links a:hover,
-.site-nav .links a[aria-current='page'] {
-  color: var(--blue);
-  text-decoration: none;
-}
 
 /* ---- footer ---- */
 .site-footer {

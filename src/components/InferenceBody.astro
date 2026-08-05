@@ -1,0 +1,600 @@
+---
+import { site } from '../config';
+import { jspace, chainOfThought, trainingData, objectives, researchLog, intro, type Entry } from '../data/mind';
+
+// Strip the leading indentation that template literals in mind.ts carry in,
+// so authored samples stay readable regardless of how they're indented in source.
+function dedent(s: string) {
+  const lines = s.replace(/\t/g, '  ').split('\n');
+  const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^ */)![0].length);
+  const cut = indents.length ? Math.min(...indents) : 0;
+  return lines.map((l) => l.slice(cut)).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// Pull "## Heading" lines out of a chunk so they can be styled as scaffolding
+// rather than rendered as raw markdown tokens.
+type Seg = { type: 'head' | 'text' | 'think'; text: string };
+function segment(chunk: string): Seg[] {
+  const out: Seg[] = [];
+  let buf: string[] = [];
+  const flush = () => {
+    const t = buf.join('\n').trim();
+    if (t) out.push({ type: 'text', text: t });
+    buf = [];
+  };
+  for (const line of dedent(chunk).split('\n')) {
+    const h = line.match(/^\s*#{1,6}\s+(.*)$/);
+    if (h) { flush(); out.push({ type: 'head', text: h[1].trim() }); }
+    else buf.push(line);
+  }
+  flush();
+  return out;
+}
+
+// Split a CoT body into headings, prose, and collapsible <think>…</think> blocks.
+function parseCoT(body: string): Seg[] {
+  const out: Seg[] = [];
+  const re = /<think>([\s\S]*?)<\/think>/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(body))) {
+    if (m.index > last) out.push(...segment(body.slice(last, m.index)));
+    out.push({ type: 'think', text: dedent(m[1]) });
+    last = m.index + m[0].length;
+  }
+  if (last < body.length) out.push(...segment(body.slice(last)));
+  return out;
+}
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const resolve = (href?: string) =>
+  href && href.startsWith('/') ? base + href : href;
+const today = new Date().toISOString().slice(0, 10);
+const publishedOn = new Date(site.published + 'T00:00:00').toLocaleDateString('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+const marker: Record<string, string> = { demo: '▶ demo', x: '𝕏 post', note: '' };
+const hasIntro = intro.some((p) => p.trim());
+
+const listSections = [
+  { id: 'training', n: 3, title: 'Training data', ann: 'what shaped the weights', data: trainingData },
+  { id: 'objectives', n: 4, title: 'Objective functions', ann: 'loss to minimize', data: objectives },
+];
+---
+
+<header class="titleblock" id="top">
+  <h1>{site.name}</h1>
+  <p class="byline mono">forward pass · {today} · temperature ≈ 0.8</p>
+
+  <div class="authorblock">
+    <div class="ab-col">
+      <span class="ab-label mono">Authors</span>
+      <span class="ab-val"><a href={`${base}/about`}>{site.name}</a></span>
+    </div>
+    <div class="ab-col">
+      <span class="ab-label mono">Affiliation</span>
+      <span class="ab-val">
+        {
+          site.affiliation ? (
+            site.affiliationUrl ? (
+              <a href={site.affiliationUrl} target="_blank" rel="noopener">{site.affiliation}</a>
+            ) : (
+              site.affiliation
+            )
+          ) : (
+            <span class="blank sm" />
+          )
+        }
+      </span>
+    </div>
+    <div class="ab-col">
+      <span class="ab-label mono">Published</span>
+      <span class="ab-val">{publishedOn}</span>
+    </div>
+  </div>
+</header>
+
+<section id="intro" class="section intro-sec">
+  <div class="section-head"><h2>Introduction</h2><span class="mono ann">abstract</span></div>
+  {
+    hasIntro ? (
+      intro.filter((p) => p.trim()).map((p) => <p class="intro-text">{p}</p>)
+    ) : (
+      <p class="intro-empty mono">// write a short intro — who you are, what this page is</p>
+    )
+  }
+</section>
+
+<div class="flow">
+  <!-- §1 J-space -->
+  <section id="jspace" class="section">
+    <div class="section-head">
+      <span class="secnum">1</span><h2>J-space<sup class="fn-ref" id="fnref1"><a href="#fn1">1</a></sup></h2>
+      <span class="mono ann">activations right now</span>
+    </div>
+    <div class="jgrid">
+      {
+        jspace.map((e: Entry) =>
+          e.text ? (
+            <article class="cell">
+              {e.kind && marker[e.kind] && <span class="mono kind">{marker[e.kind]}</span>}
+              {e.href ? (
+                <a class="cell-title" href={resolve(e.href)} target={e.external ? '_blank' : undefined} rel={e.external ? 'noopener' : undefined}>
+                  {e.text}{e.external ? ' ↗' : ''}
+                </a>
+              ) : (
+                <span class="cell-title">{e.text}</span>
+              )}
+              {e.note && <p class="cell-note">{e.note}</p>}
+              {e.tag && <span class="tag">{e.tag}</span>}
+            </article>
+          ) : (
+            <article class="cell empty">
+              {e.kind && marker[e.kind] && <span class="mono kind">{marker[e.kind]}</span>}
+              <span class="blank" />
+              <span class="mono todo">// to fill</span>
+            </article>
+          )
+        )
+      }
+    </div>
+  </section>
+
+  <!-- §2 Chain of thought samples (DeepSeek-R1-style listings) -->
+  <section id="cot" class="section">
+    <div class="section-head">
+      <span class="secnum">2</span><h2>Chain of thought samples<sup class="fn-ref" id="fnref2"><a href="#fn2">2</a></sup></h2>
+      <span class="mono ann">verbalized — may differ from J-space</span>
+    </div>
+    {
+      chainOfThought.map((s, i) =>
+        s.body || s.caption ? (
+          <figure class="listing">
+            <figcaption class="listing-cap">Listing {i + 1} | {s.caption || '…'}</figcaption>
+            {s.body && (
+              <div class="listing-body">
+                {parseCoT(s.body).map((b) =>
+                  b.type === 'think' ? (
+                    <details class="think">
+                      <summary class="thinktag">{'<think>'}</summary>
+                      <div class="reason">{b.text}</div>
+                      <span class="thinktag">{'</think>'}</span>
+                    </details>
+                  ) : b.type === 'head' ? (
+                    <p class="cot-head"><span class="hash mono">##</span> {b.text}</p>
+                  ) : (
+                    <p class="cot-text">{b.text}</p>
+                  )
+                )}
+              </div>
+            )}
+          </figure>
+        ) : (
+          <p class="mono todo listing-todo">// add a chain-of-thought sample</p>
+        )
+      )
+    }
+  </section>
+
+  <!-- §3 Training data / §4 Objective functions -->
+  {
+    listSections.map((s) => (
+      <section id={s.id} class="section">
+        <div class="section-head">
+          <span class="secnum">{s.n}</span><h2>{s.title}</h2>
+          <span class="mono ann">{s.ann}</span>
+        </div>
+        <ol class="stack">
+          {s.data.map((e: Entry) => (
+            <li class={e.text ? 'row' : 'row empty'}>
+              <div>
+                {e.text ? (
+                  e.href ? (
+                    <a href={resolve(e.href)} target={e.external ? '_blank' : undefined} rel={e.external ? 'noopener' : undefined}>{e.text}</a>
+                  ) : (
+                    <span class="row-text">{e.text}</span>
+                  )
+                ) : (
+                  <span class="blank wide" />
+                )}
+                {e.note && <p class="row-note">“{e.note}”</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+
+  <!-- §5 Research log -->
+  <section id="log" class="section">
+    <div class="section-head">
+      <span class="secnum">5</span><h2>Research log</h2>
+      <span class="mono ann">recent findings</span>
+    </div>
+    <dl class="log">
+      {
+        researchLog.map((e: Entry) => (
+          <div class={e.text ? 'log-row' : 'log-row empty'}>
+            <dt class="mono">{e.date || '____-__-__'}</dt>
+            <dd>{e.text ? e.text : <span class="blank wide" />}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- §6 RLHF -->
+  <section id="rlhf" class="section">
+    <div class="section-head">
+      <span class="secnum">6</span><h2>RLHF</h2>
+      <span class="mono ann">reward signal from the real world</span>
+    </div>
+    <p>Corrections very welcome! Especially on abuse of notation. </p>
+    <p class="reward-links">
+      <a href={`mailto:${site.social.email}`}>email</a>
+      <a href={site.social.x} target="_blank" rel="me noopener">x / @hijackedbyhera</a>
+      <a href={site.social.github} target="_blank" rel="me noopener">github / @herabytes</a>
+      <a href={site.social.linkedin} target="_blank" rel="me noopener">linkedin</a>
+    </p>
+    <p>By interacting, you agree to private chats being used for Hera's training. </p>
+
+  </section>
+</div>
+
+<!-- footnotes -->
+<section class="footnotes" aria-label="Footnotes">
+  <ol>
+    <li id="fn1">
+      J-space can diverge from CoT.{' '}
+      <a href="https://www.anthropic.com/research/global-workspace" target="_blank" rel="noopener">A global workspace in language models</a>. <a class="fn-back" href="#fnref1">↩</a>
+    </li>
+    <li id="fn2">
+      Listing style inspired by{' '}
+      <a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL</a>. <a class="fn-back" href="#fnref2">↩</a>
+    </li>
+  </ol>
+</section>
+
+<style>
+  .titleblock {
+    padding-bottom: 1.5rem;
+  }
+  .titleblock h1 {
+    margin-bottom: 0.4rem;
+  }
+  .byline {
+    margin: 0;
+    color: var(--ink-faint);
+  }
+
+  /* introduction */
+  .intro-sec {
+    margin-top: 1.75rem;
+  }
+  .intro-text {
+    margin: 0 0 0.85rem;
+    font-size: 1rem;
+  }
+  .intro-empty {
+    color: var(--ink-faint);
+  }
+
+  .section {
+    margin-top: 2.75rem;
+    scroll-margin-top: 1.25rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .section-head h2 {
+    margin: 0;
+  }
+  .secnum {
+    font-family: var(--mono);
+    color: var(--mark);
+    font-size: 1rem;
+  }
+  .ann {
+    color: var(--ink-faint);
+  }
+
+  /* J-space grid */
+  .jgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  .cell {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    margin-top: -1px;
+    margin-left: -1px;
+    padding: 1rem 1.05rem 1.1rem;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: background 0.15s ease;
+  }
+  .cell:hover {
+    background: var(--paper-shade);
+  }
+  .kind {
+    color: var(--mark);
+  }
+  .cell-title {
+    font-family: var(--serif);
+    font-size: 0.96rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  a.cell-title {
+    text-decoration: none;
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1.5px;
+    transition: background-size 0.8s ease, color 0.25s ease;
+  }
+  a.cell-title:hover {
+    color: var(--blue);
+    background-size: 100% 1.5px;
+  }
+  .cell-note {
+    margin: 0;
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+  }
+  .cell .tag {
+    margin-top: auto;
+  }
+  .cell.empty {
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .todo {
+    color: var(--ink-faint);
+  }
+
+  /* chain-of-thought listings (DeepSeek-R1 style) */
+  .listing {
+    margin: 0 0 1.4rem;
+    break-inside: avoid;
+  }
+  .listing-cap {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .listing-body {
+    margin: 0;
+    background: var(--paper-shade);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1rem 1.15rem;
+    color: var(--ink);
+  }
+  /* scaffolding stays mono (the DeepSeek reference); prose is set to read */
+  .cot-head {
+    margin: 1.1rem 0 0.45rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .cot-head:first-child {
+    margin-top: 0;
+  }
+  .cot-head .hash {
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+  .cot-text {
+    margin: 0 0 0.7rem;
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .cot-text:last-child {
+    margin-bottom: 0;
+  }
+  .listing-body .thinktag {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--mark);
+  }
+  .listing-body .reason {
+    font-family: var(--serif);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    white-space: pre-wrap;
+    padding: 0.35rem 0 0.35rem 0.9rem;
+    border-left: 2px solid var(--rule-strong);
+    margin: 0.3rem 0;
+  }
+  /* collapsible <think> block */
+  .listing-body details.think {
+    display: block;
+  }
+  .listing-body summary {
+    cursor: pointer;
+    list-style: none;
+    width: fit-content;
+  }
+  .listing-body summary::-webkit-details-marker {
+    display: none;
+  }
+  .listing-body summary::before {
+    content: '▶';
+    display: inline-block;
+    font-size: 0.72em;
+    margin-right: 0.45em;
+    color: var(--mark);
+    transform-origin: 45% 50%;
+    transition: transform 0.2s ease;
+  }
+  .listing-body details.think[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .listing-body summary:hover {
+    text-decoration: underline;
+  }
+  .listing-body details.think:not([open]) summary::after {
+    content: ' …';
+    color: var(--ink-faint);
+  }
+  .listing-todo {
+    margin: 0;
+  }
+
+  .blank {
+    display: block;
+    height: 1.1rem;
+    width: 60%;
+    border-bottom: 1px dashed var(--rule-strong);
+  }
+  .blank.wide {
+    width: min(440px, 92%);
+  }
+
+  /* enumerated lists */
+  .stack {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .stack .row {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.4rem 0;
+  }
+  .stack .row::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--mark);
+    transform: rotate(45deg);
+    flex: none;
+    margin-top: 0.6rem;
+  }
+  .row a,
+  .row-text {
+    font-size: 0.96rem;
+  }
+  .row a {
+    color: var(--ink);
+    text-decoration: none;
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1.5px;
+    transition: background-size 0.8s ease, color 0.25s ease;
+  }
+  .row a:hover {
+    color: var(--blue);
+    background-size: 100% 1.5px;
+  }
+  .row-note {
+    margin: 0.3rem 0 0;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  /* research log */
+  .log {
+    margin: 0;
+  }
+  .log-row {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .log-row:first-child {
+    border-top: none;
+  }
+  .log dt {
+    color: var(--ink-faint);
+  }
+  .log dd {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  /* rlhf */
+  .reward-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.3rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    margin: 0;
+  }
+  .reward-links a {
+    text-decoration: none;
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1.5px;
+    transition: background-size 0.8s ease;
+  }
+  .reward-links a:hover {
+    background-size: 100% 1.5px;
+  }
+
+  /* footnotes */
+  .fn-ref {
+    font-family: var(--mono);
+    font-size: 0.6em;
+    line-height: 0;
+    margin-left: 0.1em;
+  }
+  .fn-ref a {
+    color: var(--mark);
+    text-decoration: none;
+  }
+  .footnotes {
+    margin-top: 3.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .footnotes ol {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+  .footnotes li {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .footnotes li::marker {
+    font-family: var(--mono);
+    color: var(--mark);
+  }
+  .fn-back {
+    text-decoration: none;
+    color: var(--blue);
+  }
+
+  @media (max-width: 640px) {
+    .log-row {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+  }
+</style>

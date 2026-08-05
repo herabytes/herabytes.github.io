@@ -6,17 +6,23 @@
 export const site = {
   name: 'Hera Choi',
   // Your GitHub username. Used for the avatar and the GitHub link.
-  githubUser: 'YOUR_USERNAME',
+  githubUser: 'herabytes',
 
   social: {
-    github: 'https://github.com/YOUR_USERNAME',
-    linkedin: 'https://www.linkedin.com/in/YOUR_LINKEDIN/',
+    github: 'https://github.com/herabytes',
+    linkedin: 'https://www.linkedin.com/in/hera-choi',
     x: 'https://x.com/hijackedbyhera',
     email: 'yu.choi.25@ucl.ac.uk',
   },
 
   // Optional <meta description>. Kept neutral on purpose — reword when you like.
   description: 'Hera Choi — a running inference: ideas, work, and interests.',
+
+  // Paper-style author block under the title (Distill / transformer-circuits style).
+  // Leave `affiliation` as '' to render a blank slot to fill in later.
+  affiliation: '',
+  affiliationUrl: '',
+  published: '2026-08-05',
 };
 
 // GitHub serves your avatar at https://github.com/<user>.png — no upload needed.
