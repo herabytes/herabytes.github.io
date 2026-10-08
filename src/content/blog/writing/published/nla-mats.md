@@ -1,0 +1,1 @@
+I wanted to apply to Neel's MATS stream, just because the sprint project looked enticing as an excuse to get hands-on with interpretability.
