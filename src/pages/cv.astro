@@ -1,0 +1,26 @@
+---
+const pdfPath = '/cv.pdf';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CV</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font-family: system-ui, sans-serif; }
+      .wrap { height: 100dvh; display: grid; grid-template-rows: auto 1fr; }
+      .topbar { padding: 0.75rem 1rem; border-bottom: 1px solid #ccc; }
+      iframe { width: 100%; height: 100%; border: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <a href={pdfPath} target="_blank" rel="noopener">Open PDF in new tab</a>
+      </div>
+      <iframe src={pdfPath} title="CV PDF" />
+    </div>
+  </body>
+</html>
